@@ -2,18 +2,14 @@ $targetPath = ".\"
 
 $files = Get-ChildItem -Path $targetPath | Where-Object { $_.Extension -like "*.docx" }
 
+$word = New-Object -ComObject Word.Application
 foreach ($f in $files) {
     Write-Host $f
 
-    #Wordオブジェクトを生成
-    $word = New-Object -ComObject Word.Application
-
     $doc = $word.Documents.Open($f.FullName)
     
-    #変更履歴を非表示
     #$doc.ActiveWindow.View.ShowRevisionsAndComments = $False 
 
-    #保存ファイル名（拡張子を変更）
     $outputfile = $f.FullName.Replace("docx", "pdf")
     Write-Host $outputfile
 
@@ -34,7 +30,10 @@ foreach ($f in $files) {
         $False  #UseISO190051_
     )
 
-    $doc.Close()
-    $word.Quit()
+    # https://docs.microsoft.com/ja-jp/office/vba/api/word.document.close(method)
+    $doc.Close([Microsoft.Office.Interop.Word.WdSaveOptions]::wdDoNotSaveChanges)
+
 }
+# https://docs.microsoft.com/ja-jp/office/vba/api/word.application.quit(method)
+$word.Quit()
 Write-Host "done!"
